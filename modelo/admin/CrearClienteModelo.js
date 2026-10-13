@@ -1,21 +1,49 @@
+
 const dbService = require('../bd/Conexion');
 const bcrypt = require('bcrypt');
 
 class CrearClienteModelo {
-// funcion para crear nuevos clientes por el admin
-  static async crearClientes(tipoD, numeroD, nom, dir, tel, email, contras) {
-    const query = 'INSERT INTO clientes (tipoDocumento, numeroDocumento, nombres, direccion, telefono, correo, contrasena) VALUES (?, ?, ?, ?, ?, ?, ?)';
 
-    try {
-      // Generar el hash de la contraseña con bcrypt
-      const salto = 10; // Nivel de seguridad de encriptación
-      const contra = await bcrypt.hash(contras, salto);
+    // Verificar si el documento, teléfono o correo ya existen
+    static async verificarCliente(numeroD, tel, email) {
+        const query = `
+            SELECT idcliente, Numerodocumento, telefono, correo
+            FROM clientes
+            WHERE Numerodocumento = ?
+               OR telefono = ?
+               OR correo = ?
+        `;
 
-      return await dbService.query(query, [tipoD, numeroD, nom, dir, tel, email, contra]);
-    } catch (err) {
-      throw new Error(`Error al crear su nueva cuenta cliente: ${err.message}`);
+        return await dbService.query(query, [numeroD, tel, email]);
     }
-  }//cerrar crear cliente
+
+    // Crear una nueva cuenta de cliente
+    static async crearClientes(tipoD, numeroD, nom, dir, tel, email, contras) {
+        const query = `
+            INSERT INTO clientes
+            (tipodocumento, Numerodocumento, nombres, direccion, telefono, correo, contrasena)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        try {
+            // Proteger la contraseña antes de guardarla
+            const contra = await bcrypt.hash(contras, 10);
+
+            return await dbService.query(query, [
+                tipoD,
+                numeroD,
+                nom,
+                dir,
+                tel,
+                email,
+                contra
+            ]);
+        } catch (err) {
+            throw err;
+        }
+    }
 }
 
 module.exports = CrearClienteModelo;
+
+

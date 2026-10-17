@@ -1,2 +1,2 @@
-# Peluqueria-SENA
+# legumbreria
 Clase
